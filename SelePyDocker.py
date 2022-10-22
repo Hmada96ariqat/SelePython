@@ -6,12 +6,24 @@ from multiprocessing.managers import Token
 from platform import architecture
 from pydoc import doc
 import random as rd
+from select import select
+from tkinter.tix import MAIN
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
 from PIL import Image
 import string
 from cryptography.fernet import Fernet
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.keys import Keys
+
+
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from time import sleep
+
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
@@ -44,12 +56,6 @@ class CreateDeleteRepo_1():
         # generating random strings
         N = 7
         random_name = ''.join(rd.choices(string.ascii_lowercase + string.digits, k=N))
-
-        # The logic of the part is to eliminate the chance of choosing the same name if the website had a caching issue
-        # Mylist = ['a1e', 'a2e', 'a3e', 'a33', 'a22', 'a1']
-        # rand_idx = rd.randrange(len(Mylist))
-        # random_name = Mylist[rand_idx]
-
         driver.find_element('xpath', '/html/body/div/div[1]/div/div[3]/div/div[2]/div/div[1]/form/div[1]/div[2]/div[1]/div[2]/div/input').send_keys(random_name)
         driver.find_element('xpath', '/html/body/div/div[1]/div/div[3]/div/div[2]/div/div[1]/form/div[1]/div[2]/div[2]/div/input').send_keys('repo_desc')
         driver.find_element('xpath', '/html/body/div/div[1]/div/div[3]/div/div[2]/div/div[1]/form/div[2]/div/button[2]').click()
@@ -76,13 +82,13 @@ class CreateDeleteRepo_1():
         driver.implicitly_wait(15)
         driver.find_element('xpath', '/html/body/div/div[1]/div/div[2]/header/nav/div[2]/div/ul/li[5]').click()
         driver.implicitly_wait(15)
-        print('success')
+        print('success/wait to the next part')
         driver.close()
 
 class explore():
 
-
     def exp(self):
+
       # Navigate to DockerHub.com with valid credintials
         driver = webdriver.Chrome(ChromeDriverManager().install())
         url = "https://hub.docker.com/"
@@ -97,8 +103,18 @@ class explore():
         driver.implicitly_wait(15)
         driver.find_element('xpath', '//*[@id="onetrust-reject-all-handler"]').click()
     
-        
-        
+        # navigate to search bar and search for jenkins
+        search_query = "jenkins/jenkins"
+        xpath_value = '//*[@id="mui-1"]'
+        driver.find_element('xpath', xpath_value).send_keys(search_query)
+        driver.find_element('xpath', xpath_value).send_keys(Keys.RETURN)
+        driver.implicitly_wait(25)
+        print('Docker Pull Command copied!')
+        driver.find_element('xpath', '//*[@id="searchResults"]/div/a[1]/div').click()
+        driver.find_element('xpath', '//*[@id="mainContainer"]/div/div/div[3]/div/div/div/div[2]/div/div[2]/div/div/code').click()
+        driver.implicitly_wait(20)
+
+        # navigate to explore page
         driver.find_element('xpath', '//*[@id="app"]/div[1]/div/div[2]/header/nav/a[1]').click()
         driver.find_element('xpath', '//*[@id="productTypeFilterList"]/div/label[1]/span[1]/input').click()
         driver.find_element('xpath', '//*[@id="operatingSystemsFilterList"]/div/label[1]/span[1]/input').click()
@@ -112,7 +128,7 @@ class explore():
         actions.perform()
         print('succeeded')
 
-
+# MAIN
 CreateDeleteRepo().logIn()
 
 CreateDeleteRepo_1().repoCreation()
