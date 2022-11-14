@@ -129,9 +129,9 @@ class explore():
         print('succeeded!')
 
 # MAIN
-CreateDeleteRepo().logIn()
+# CreateDeleteRepo().logIn()
 
-CreateDeleteRepo_1().repoCreation()
+# CreateDeleteRepo_1().repoCreation()
 
-explore().exp()
+# explore().exp()
 
