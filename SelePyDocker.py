@@ -126,7 +126,7 @@ class explore():
         actions = ActionChains(driver)
         actions.move_to_element(dropDown)
         actions.perform()
-        print('succeeded')
+        print('succeeded!')
 
 # MAIN
 CreateDeleteRepo().logIn()
