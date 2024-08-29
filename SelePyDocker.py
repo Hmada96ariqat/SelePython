@@ -1,137 +1,110 @@
-from ast import Delete
-from inspect import stack
-from lib2to3.pgen2 import token
-from msilib.schema import Class, PublishComponent
-from multiprocessing.managers import Token
-from platform import architecture
-from pydoc import doc
-import random as rd
-from select import select
-from tkinter.tix import MAIN
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.action_chains import ActionChains
-from PIL import Image
+import time
+import random
 import string
-from cryptography.fernet import Fernet
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.keys import Keys
-
-
-from selenium.webdriver.firefox.options import Options
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from time import sleep
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import TimeoutException  # Import TimeoutException
 
 
-driver = webdriver.Chrome(ChromeDriverManager().install())
 
-class  CreateDeleteRepo():
+class DockerHubAutomation:
     
-    def logIn(self):
+    def __init__(self):
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(service=service)
+        self.driver.maximize_window()
+        self.base_url = "https://hub.docker.com/"
+        self.username = 'hmada96'
+        self.password = 'Dockerhub1'
+        self.wait = WebDriverWait(self.driver, 30)  # Increased wait time to 30 seconds
 
-        # Navigate to DockerHub.com with valid credintials
-        # driver_1 = webdriver.Chrome(ChromeDriverManager().install())
-        url = "https://hub.docker.com/"
-        driver.maximize_window()
-        driver.get(url)
-        driver.implicitly_wait(15)
-        driver.find_element("xpath", '//*[@id="signupForm"]/div[1]/div/div/div[2]/a').click()
-        driver.find_element('xpath', '//*[@id="username"]').send_keys('hmada96')
-        driver.find_element('xpath', '/html/body/div[2]/main/section/div/div/div/form/div[2]/button').click()
-        driver.find_element('xpath', '//*[@id="password"]').send_keys('Dockerhub1')
-        driver.find_element('xpath', '/html/body/div[2]/main/section/div/div/div/form/div[2]/button').click()
-        driver.implicitly_wait(15)
-        driver.find_element('xpath', '//*[@id="onetrust-reject-all-handler"]').click()
+    def navigate_to_login(self):
+        self.driver.get(self.base_url)
+        self.driver.implicitly_wait(15)
+        self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In"))).click()
+        # Assertion to verify we are on the login page by checking for the presence of the username field
+        username_field = self.wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        assert username_field.is_displayed(), "Username field is not displayed; not on the Sign In page."
 
-class CreateDeleteRepo_1():
 
-    def repoCreation(self):
-        # Create a new repo
-        driver.implicitly_wait(15)
-        driver.find_element('xpath', '//*[@id="mainContainer"]/div/div/div/div[1]/div[1]/span/button').click()
+    def log_in(self):
+        self.navigate_to_login()
+        self.wait.until(EC.presence_of_element_located((By.ID, 'username'))).send_keys(self.username)
+        self.driver.find_element(By.XPATH, '//button[@type="submit"]').click()
+        self.wait.until(EC.presence_of_element_located((By.ID, 'password'))).send_keys(self.password)
+        self.driver.find_element(By.XPATH, '//button[@type="submit"]').click()
+        self.wait.until(EC.presence_of_element_located((By.ID, 'onetrust-reject-all-handler'))).click()
+        # Assertion to verify that login was successful by checking for a known element
+        # time.sleep(5)
+        # create_repo = self.wait.until(EC.presence_of_element_located((By.ID, 'createRepoBtn')))
+        # assert create_repo.is_displayed(), "Login failed or repositories page not loaded."
 
-        # size of string(repo's name) 
-        # generating random strings
-        N = 7
-        random_name = ''.join(rd.choices(string.ascii_lowercase + string.digits, k=N))
-        driver.find_element('xpath', '/html/body/div/div[1]/div/div[3]/div/div[2]/div/div[1]/form/div[1]/div[2]/div[1]/div[2]/div/input').send_keys(random_name)
-        driver.find_element('xpath', '/html/body/div/div[1]/div/div[3]/div/div[2]/div/div[1]/form/div[1]/div[2]/div[2]/div/input').send_keys('repo_desc')
-        driver.find_element('xpath', '/html/body/div/div[1]/div/div[3]/div/div[2]/div/div[1]/form/div[2]/div/button[2]').click()
-        driver.implicitly_wait(15)
+    def create_repo(self):
+        self.log_in()
+        time.sleep(5)  # Sleep before clicking "Create Repository" button
+        self.wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "/html/body/div[2]/div/div[2]/div/div/div/div/div[1]/div/div/div/div[1]/div[4]/span/button"))
+        ).click()
+        repo_name = self.generate_random_string(7)
+        time.sleep(5)  # Sleep before entering repo details
+        self.driver.find_element(By.XPATH, 
+            '/html/body/div[2]/div/div[2]/div/div/div[1]/form/div/div[1]/div[2]/div/div/input'
+        ).send_keys(repo_name)
+        self.driver.find_element(By.XPATH, 
+            '/html/body/div[2]/div/div[2]/div/div/div[1]/form/div/div[1]/div[3]/div/div/div/textarea[1]'
+        ).send_keys('repo_desc')
+        self.driver.find_element(By.XPATH, 
+            '/html/body/div[2]/div/div[2]/div/div/div[1]/form/div/div[2]/span/button'
+        ).click()
+        # Assertion to verify the repository creation was successful
+        # repo_created = self.wait.until(EC.presence_of_element_located(By., "Created less than a minute ago"))
+        # user_and_repo = self.username + '/' + repo_name
+        # assert user_and_repo.is_displayed(), "Repository creation failed."
+        # return repo_name
+        try:
+            repo_element = self.wait.until(
+                EC.visibility_of_element_located((By.XPATH, f'//span[text()="{repo_name}"]'))
+            )
+            assert repo_element.is_displayed(), "Repository creation failed."
+            print("IT WORKED!!!!!!")
+        except TimeoutException:
+            print("Repository not found or not displayed.")
+   
+        return repo_name
 
-        # Delete the same created repo
-        driver.find_element('xpath', '//*[@id="mainContainer"]/div/div/div[2]/div/div/div/div/button[6]').click()
-        element = driver.find_element('xpath', '/html/body/div[1]/div[1]/div/div[3]/div/div/div[3]/div/div[3]/div[2]/div/span/button')
-        actions = ActionChains(driver)
-        actions.move_to_element(element)
-        actions.perform()
-        driver.find_element('xpath', '/html/body/div[1]/div[1]/div/div[3]/div/div/div[3]/div/div[3]/div[2]/div/span/button').click()
-        driver.find_element('xpath', '//*[@id="imageNameField"]').send_keys(random_name)
+    def delete_repo(self, repo_name):
+        time.sleep(5)  # Sleep before attempting to delete the repo
+        self.wait.until(EC.element_to_be_clickable(
+            (By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/div[1]/div/div/a[6]')
+        )).click()
+        element = self.driver.find_element(By.XPATH, 
+            '/html/body/div[2]/div/div[2]/div/div/div/div[2]/div[3]/div[2]/span/button'
+        )
+        actions = webdriver.ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element.click()
+        self.wait.until(EC.presence_of_element_located((By.ID, 'imageNameField'))).send_keys(repo_name)
+        self.driver.save_screenshot("DeletedRepo.png")
+        self.driver.find_element(By.XPATH, 
+            '/html/body/div[13]/div[3]/div/div[3]/button[2]'
+        ).click()
+        # Assertion to verify the repository deletion was successful
+        # assert "Repository Deleted" in self.driver.page_source, "Repository deletion failed."
 
-        driver.save_screenshot("DeletedRepo.png")
+    def generate_random_string(self, length):
+        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
-        driver.implicitly_wait(15)
-        driver.find_element('xpath', '/html/body/div[5]/div/div/div/div[3]/div[3]/button[2]').click()
-        print(driver.current_url)
-        driver.implicitly_wait(15)
+    def run(self):
+        repo_name = self.create_repo()
+        self.delete_repo(repo_name)
+        self.driver.quit()
 
-        # Log-out
-        driver.find_element('id', 'loggedInMenu').click()
-        driver.implicitly_wait(15)
-        driver.find_element('xpath', '/html/body/div/div[1]/div/div[2]/header/nav/div[2]/div/ul/li[5]').click()
-        driver.implicitly_wait(15)
-        print('success/wait to the next part')
-        driver.close()
 
-class explore():
-
-    def exp(self):
-
-      # Navigate to DockerHub.com with valid credintials
-        driver = webdriver.Chrome(ChromeDriverManager().install())
-        url = "https://hub.docker.com/"
-        driver.maximize_window()
-        driver.get(url)
-        driver.implicitly_wait(15)
-        driver.find_element("xpath", '//*[@id="signupForm"]/div[1]/div/div/div[2]/a').click()
-        driver.find_element('xpath', '//*[@id="username"]').send_keys('hmada96')
-        driver.find_element('xpath', '/html/body/div[2]/main/section/div/div/div/form/div[2]/button').click()
-        driver.find_element('xpath', '//*[@id="password"]').send_keys('Dockerhub1')
-        driver.find_element('xpath', '/html/body/div[2]/main/section/div/div/div/form/div[2]/button').click()
-        driver.implicitly_wait(15)
-        driver.find_element('xpath', '//*[@id="onetrust-reject-all-handler"]').click()
-    
-        # navigate to search bar and search for jenkins
-        search_query = "jenkins/jenkins"
-        xpath_value = '//*[@id="mui-1"]'
-        driver.find_element('xpath', xpath_value).send_keys(search_query)
-        driver.find_element('xpath', xpath_value).send_keys(Keys.RETURN)
-        driver.implicitly_wait(25)
-        print('Docker Pull Command copied!')
-        driver.find_element('xpath', '//*[@id="searchResults"]/div/a[1]/div').click()
-        driver.find_element('xpath', '//*[@id="mainContainer"]/div/div/div[3]/div/div/div/div[2]/div/div[2]/div/div/code').click()
-        driver.implicitly_wait(20)
-
-        # navigate to explore page
-        driver.find_element('xpath', '//*[@id="app"]/div[1]/div/div[2]/header/nav/a[1]').click()
-        driver.find_element('xpath', '//*[@id="productTypeFilterList"]/div/label[1]/span[1]/input').click()
-        driver.find_element('xpath', '//*[@id="operatingSystemsFilterList"]/div/label[1]/span[1]/input').click()
-        element = driver.find_element('xpath', '//*[@id="architecturesFilterList"]/div/label[7]/span[1]/input')
-        actions = ActionChains(driver)
-        actions.move_to_element(element)
-        actions.perform()
-        dropDown = driver.find_element('xpath', '//*[@id="mainContainer"]/div/div/div/div[2]/div[1]/div[2]/div/div')
-        actions = ActionChains(driver)
-        actions.move_to_element(dropDown)
-        actions.perform()
-        print('succeeded!')
-
-# MAIN
-# CreateDeleteRepo().logIn()
-
-# CreateDeleteRepo_1().repoCreation()
-
-# explore().exp()
-
+# Example usage:
+if __name__ == "__main__":
+    automation = DockerHubAutomation()
+    automation.run()
