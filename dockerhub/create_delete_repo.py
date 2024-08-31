@@ -1,4 +1,29 @@
-# create_delete_repo.py
+"""
+create_delete_repo.py
+
+This module provides functions to create and delete the repository using Selenium WebDriver.
+
+Functions:
+- create_repo(driver, wait, generate_random_string, log_in):
+  Creates a new repository with a randomly generated name.
+
+- delete_repo(driver, wait, repo_name):
+  Deletes the specified repository.
+
+Parameters:
+- wait (WebDriverWait): WebDriverWait instance for element waits.
+- generate_random_string (function): Function to generate a random repository name.
+- log_in (function): Function to log into DockerHub.
+- repo_name (str): Name of the repository to delete.
+
+Exceptions:
+- TimeoutException: Raised on timeout during operations.
+- Exception: Raised for other errors.
+
+Author: Adam Areiqat
+Date: August 2024
+"""
+
 
 import logging
 from selenium.webdriver.common.by import By
@@ -13,18 +38,14 @@ def create_repo(driver, wait, generate_random_string, log_in):
         username = 'hmada96'
         password = 'Dockerhub1'
         log_in(driver, wait, username, password)
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "/html/body/div[2]/div/div[2]/div/div/div/div/div[1]/div/div/div/div[1]/div[4]/span/button"))
+        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-testid='createRepoBtn']"))
         ).click()
         repo_name = generate_random_string(7)
-        driver.find_element(By.XPATH,
-            '/html/body/div[2]/div/div[2]/div/div/div[1]/form/div/div[1]/div[2]/div/div/input'
+        driver.find_element(By.CSS_SELECTOR, "[data-testid='repoNameField-input']"
         ).send_keys(repo_name)
-        driver.find_element(By.XPATH,
-            '/html/body/div[2]/div/div[2]/div/div/div[1]/form/div/div[1]/div[3]/div/div/div/textarea[1]'
+        driver.find_element(By.CSS_SELECTOR, "[data-testid='repoDescriptionField-input']"
         ).send_keys('repo_desc')
-        driver.find_element(By.XPATH,
-            '/html/body/div[2]/div/div[2]/div/div/div[1]/form/div/div[2]/span/button'
+        driver.find_element(By.CSS_SELECTOR, "[data-testid='submit']"
         ).click()
         return repo_name
     except TimeoutException as e:
@@ -36,16 +57,12 @@ def create_repo(driver, wait, generate_random_string, log_in):
 
 def delete_repo(driver, wait, repo_name):
     wait.until(EC.element_to_be_clickable(
-        (By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/div[1]/div/div/a[6]')
+        (By.CSS_SELECTOR, "[data-testid='tabSettings']")
     )).click()
-    element = driver.find_element(By.XPATH,
-        '/html/body/div[2]/div/div[2]/div/div/div/div[2]/div[3]/div[2]/span/button'
-    )
+    element = driver.find_element(By.CSS_SELECTOR, "[data-testid='deleteRepo']")
     actions = webdriver.ActionChains(driver)
     actions.move_to_element(element).perform()
     element.click()
     wait.until(EC.presence_of_element_located((By.ID, 'imageNameField'))).send_keys(repo_name)
     driver.save_screenshot("DeletedRepo.png")
-    driver.find_element(By.XPATH, 
-        '/html/body/div[13]/div[3]/div/div[3]/button[2]'
-    ).click()
+    driver.find_element(By.CSS_SELECTOR, "[data-testid='confirm']").click()
