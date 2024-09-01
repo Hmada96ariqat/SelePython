@@ -26,17 +26,22 @@ Date: August 2024
 
 
 import logging
+import json
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
+# load the credintials from the config file
+with open("config.json", "r") as file:
+    config = json.load(file)
+
 def create_repo(driver, wait, generate_random_string, log_in):
     try:
         logging.info("Attempting to create a repository.")
         # Credintials for logging in
-        username = 'hmada96'
-        password = 'Dockerhub1'
+        username = config["first_USERNAME"]
+        password = config["first_PASSWORD"]
         log_in(driver, wait, username, password)
         wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-testid='createRepoBtn']"))
         ).click()
