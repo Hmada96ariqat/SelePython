@@ -35,6 +35,10 @@ Update Credentials
 
     python SelePyDocker.py
 
+5. **API**
+    1-getting the auth token and use it for logging in
+    2-using get method to retrive the existing repos
+    3-using post method to add new repos
 
 # Customization
 
